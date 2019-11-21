@@ -93,6 +93,14 @@ public class Random {
 	/*** STATIC ****/
 
 	static class StringRandoms {
+		public static Stream<String> stream(final int limit) {
+			return StringRandoms.stream(limit, s -> true);
+		}
+
+		public static Stream<String> stream(final int limit, final int length) {
+			return StringRandoms.stream(limit, length, s -> true);
+		}
+
 		public static Stream<String> stream(final int limit, final Predicate<String> method) {
 			return StringRandoms.stream(limit, 5, method);
 		}

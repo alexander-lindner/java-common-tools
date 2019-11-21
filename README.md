@@ -11,7 +11,7 @@ final List<String> keys = Random.build(Generator.alphanumeric())
                                 .parallelUniqueStream(count, keyLength)
                                 .filter(s -> s.startsWith("a"))
                                 .collect(Collectors.toList());
-// *keys* contains *count* strings like aYC8KQhxrJgrnTau08TbWoha7dswQTrTQ1fI3TZLBVEKrFUTs2
+// *keys* contains ~1/62 *count* strings like aYC8KQhxrJgrnTau08TbWoha7dswQTrTQ1fI3TZLBVEKrFUTs2
 ``` 
 # Install it
 

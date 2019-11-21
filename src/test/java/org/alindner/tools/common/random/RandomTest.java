@@ -163,6 +163,12 @@ class RandomTest {
 
 	@Test
 	void build() {
+		final int keyLength = 50;
+		final int count     = 1000000;
+		final List<String> keys = Random.build(Generator.alphanumeric())
+		                                .parallelUniqueStream(count, keyLength)
+		                                .filter(s -> s.startsWith("a"))
+		                                .collect(Collectors.toList());
 	}
 
 	@Test

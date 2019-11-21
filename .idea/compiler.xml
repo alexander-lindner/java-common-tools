@@ -10,8 +10,5 @@
         <module name="CommonToolChain" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="CommonToolChain" target="8" />
-    </bytecodeTargetLevel>
   </component>
 </project>
