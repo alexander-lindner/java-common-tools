@@ -1,7 +1,7 @@
 package org.alindner.tools.common.random.generator;
 
-import java.security.SecureRandom;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
 public class RandomStringGenerator implements IRandomStringGenerator<String> {
@@ -13,8 +13,8 @@ public class RandomStringGenerator implements IRandomStringGenerator<String> {
 	 *
 	 * @param alphanum chars
 	 */
-	public RandomStringGenerator(final String alphanum) {
-		this(alphanum, new SecureRandom());
+	public RandomStringGenerator(final Generator.ICharPool alphanum) {
+		this(alphanum, ThreadLocalRandom.current());
 	}
 
 	/**
@@ -23,11 +23,8 @@ public class RandomStringGenerator implements IRandomStringGenerator<String> {
 	 * @param alphanum chars
 	 * @param random   random generator
 	 */
-	public RandomStringGenerator(final String alphanum, final java.util.Random random) {
-		if (alphanum.length() < 2) {
-			throw new IllegalArgumentException();
-		}
-		this.symbols = alphanum.toCharArray();
+	public RandomStringGenerator(final Generator.ICharPool alphanum, final java.util.Random random) {
+		this.symbols = alphanum.getCharacters();
 		this.random = Objects.requireNonNull(random);
 	}
 
@@ -36,13 +33,9 @@ public class RandomStringGenerator implements IRandomStringGenerator<String> {
 	 */
 	@Override
 	public String next(final int length) {
-		if (length < 1) {
-			throw new IllegalArgumentException();
-		}
-
-		final char[] buf = new char[length];
-		IntStream.range(0, buf.length)
-		         .forEach(i -> buf[i] = this.symbols[this.random.nextInt(this.symbols.length)]);
-		return new String(buf);
+		return IntStream.range(0, length)
+		                .mapToObj(i -> String.valueOf(this.symbols[this.random.nextInt(this.symbols.length)]))
+		                .reduce(String::concat)
+		                .orElse("");
 	}
 }

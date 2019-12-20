@@ -6,8 +6,10 @@ import org.alindner.tools.common.random.generator.RandomStringGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,32 +33,43 @@ class RandomTest {
 	@Test
 	void customGenerator() {
 		Random
-				.build(random -> new RandomStringGenerator("89", random))
+				.build(Generator.alphanumeric())
 				.stream(5, this.count)
-				.forEach(s -> assertFalse(s.contains("[a-zA-Z0-7]+")));
+				.forEach(Assertions::assertNotNull);
 		Random
-				.build(random -> new RandomNumberGenerator("89", random))
+				.build(new RandomNumberGenerator("89"::toCharArray))
 				.stream(5, this.count)
+				.forEach(Assertions::assertNotNull);
+		Random
+				.build(new RandomStringGenerator("89"::toCharArray, new SecureRandom()))
+				.stream(5, 8)
 				.forEach(Assertions::assertNotNull);
 	}
 
 	@Test
 	void customGeneratorWithRandomizer() {
 		Random
-				.build(random -> new RandomStringGenerator("89", random), new java.util.Random())
+				.build(new RandomStringGenerator("89"::toCharArray, new java.util.Random()))
 				.stream(5, this.count)
 				.collect(Collectors.toList())
 				.forEach(s -> assertFalse(s.contains("[a-zA-Z0-7]+")));
+
+		Random.String.build().stream(8, 5, s -> s.startsWith("bb") && s.endsWith("bb"))
+		             .forEach(s -> assertTrue(s.startsWith("bb") && s.endsWith("bb")));
+		Random
+				.build(length -> "aa" + Generator.alphanumeric().next(length - 4) + "aa")
+				.stream(13, 8)
+				.forEach(s -> assertTrue(s.startsWith("aa") && s.endsWith("aa")));
 	}
 
 	@Test
 	void stream() {
 		final List<String> keys = new ArrayList<>();
 		final int          size = 100;
-		Random.StringRandoms.stream(size, o -> !keys.contains(o)).forEach(keys::add);
+		Random.String.build().stream(this.keyLength, size, o -> !keys.contains(o)).forEach(keys::add);
 		assertEquals(size, keys.size());
 		keys.clear();
-		Random.StringRandoms.stream(size, this.keyLength, o -> !keys.contains(o)).forEach(keys::add);
+		Random.String.build().stream(this.keyLength, size, o -> !keys.contains(o)).forEach(keys::add);
 		assertEquals(size, keys.size());
 		keys.forEach(s -> assertTrue(s.length() >= this.keyLength));
 
@@ -65,12 +78,15 @@ class RandomTest {
 
 	@Test
 	void streamParallel() {
-		final List<String> keys = Random.StringRandoms.streamParallel(this.count).collect(Collectors.toList());
+		final List<String> keys = Random.String
+				.build()
+				.parallelStream(this.keyLength, this.count)
+				.collect(Collectors.toList());
 		assertEquals(this.count, keys.size());
 
-		final List<String> keys2 = Random.StringRandoms
-				.streamParallel(this.count, this.keyLength)
-				.collect(Collectors.toList());
+		final List<String> keys2 = Random.String.build()
+		                                        .parallelStream(this.keyLength, this.count)
+		                                        .collect(Collectors.toList());
 		assertEquals(this.count, keys2.size());
 		keys2.forEach(s -> assertTrue(s.length() >= this.keyLength));
 
@@ -107,31 +123,36 @@ class RandomTest {
 
 	@Test
 	void streamParallelUnique() {
-		final Set<String> keys = Random.StringRandoms.streamParallelUnique(this.count, this.keyLength)
-		                                             .collect(Collectors.toSet());
+		final Set<String> keys = Random.String.build()
+		                                      .parallelUniqueStream(this.keyLength, this.count)
+		                                      .collect(Collectors.toSet());
 		assertEquals(this.count, keys.size());
 
-		final Set<String> keys3 = Random.StringRandoms.streamParallelUnique(this.count).collect(Collectors.toSet());
+		final Set<String> keys3 = Random.String.build()
+		                                       .parallelUniqueStream(this.keyLength, this.count)
+		                                       .collect(Collectors.toSet());
 		assertEquals(this.count, keys3.size());
 
-		final Set<String> keys2 = Random.StringRandoms.streamParallelUnique(
-				this.count,
-				this.keyLength,
-				s -> !s.startsWith("a")
-		).collect(Collectors.toSet());
+		final Set<String> keys2 = Random.String.build()
+		                                       .parallelUniqueStream(
+				                                       this.keyLength,
+				                                       this.count,
+				                                       s -> !s.startsWith("a")
+		                                       )
+		                                       .collect(Collectors.toSet());
 		assertEquals(this.count, keys2.size());
 		keys2.forEach(s -> assertFalse(s.startsWith("a")));
 
 		assertEquals(
 				this.count,
 				Random.build(Generator.alphanumeric())
-				      .parallelUniqueStream(this.count, this.keyLength)
+				      .parallelUniqueStream(this.keyLength, this.count)
 				      .count()
 		);
 
 
 		final Set<String> keys4 = Random.build(Generator.alphanumeric())
-		                                .parallelUniqueStream(this.count, this.keyLength, s -> s.startsWith("a"))
+		                                .parallelUniqueStream(this.keyLength, this.count, s -> s.startsWith("a"))
 		                                .collect(Collectors.toSet());
 		assertEquals(this.count, keys4.size());
 		keys4.forEach(s -> assertTrue(s.startsWith("a")));
@@ -139,14 +160,14 @@ class RandomTest {
 
 	@Test
 	void list() {
-		final List<String> list = Random.StringRandoms.list(this.count, this.keyLength, s -> true);
+		final List<String> list = Random.String.build().list(this.keyLength, this.count, s -> true);
 		assertEquals(this.count, list.size());
 		list.forEach(s -> assertTrue(s.length() >= this.keyLength));
 		final List<String> list2 = Random.list(
-				this.count,
 				this.keyLength,
+				this.count,
 				s -> s.startsWith("a"),
-				random -> new RandomStringGenerator("abc")
+				new RandomStringGenerator("abc"::toCharArray)
 		);
 		list2.forEach(s -> assertTrue(s.startsWith("a")));
 	}
@@ -166,16 +187,26 @@ class RandomTest {
 		final int keyLength = 50;
 		final int count     = 1000000;
 		final List<String> keys = Random.build(Generator.alphanumeric())
-		                                .parallelUniqueStream(count, keyLength)
+		                                .parallelUniqueStream(keyLength, count)
 		                                .filter(s -> s.startsWith("a"))
 		                                .collect(Collectors.toList());
+		keys.forEach(s -> assertTrue(s.startsWith("a")));
 	}
 
 	@Test
-	void testBuild() {
+	void exception() {
+		Assertions.assertThrows(IllegalArgumentException.class, () -> Random.build().stream(1));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> Random.build().stream(0));
+		Assertions.assertThrows(
+				IllegalArgumentException.class,
+				() -> Random.stream(5, 0, Objects::nonNull, Generator.alphanumeric())
+		);
 	}
 
 	@Test
-	void testBuild1() {
+	void Strings() {
+		Random.String.build().stream(13, 8, s -> s.startsWith("a")).forEach(System.out::println);
+		Random.String.build().stream(13, 8).forEach(System.out::println);
+//		Random.String.build().stream(13).forEach(System.out::println);
 	}
 }
