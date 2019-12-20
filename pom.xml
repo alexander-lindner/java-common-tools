@@ -4,7 +4,7 @@
 
     <groupId>org.alindner.tools</groupId>
     <artifactId>common</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.1.0</version>
 
     <name>java-common-tools</name>
     <description>A java tool chain for various little helper and tools
@@ -141,7 +141,7 @@
     <scm>
         <connection>scm:git:git://github.com/alexander-lindner/java-common-tools.git</connection>
         <url>https://github.com/alexander-lindner/java-common-tools</url>
-        <tag>HEAD</tag>
+        <tag>common-1.1.0</tag>
     </scm>
     <profiles>
         <!-- GPG Signature on release -->
