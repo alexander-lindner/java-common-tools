@@ -8,7 +8,7 @@ A java tool chain for various little helper and tools
 int keyLength = 50;
 int count = 1000000;
 final List<String> keys = Random.build(Generator.alphanumeric())
-                                .parallelUniqueStream(count, keyLength)
+                                .parallelUniqueStream(keyLength, count)
                                 .filter(s -> s.startsWith("a"))
                                 .collect(Collectors.toList());
 // *keys* contains ~1/62 *count* strings like aYC8KQhxrJgrnTau08TbWoha7dswQTrTQ1fI3TZLBVEKrFUTs2
@@ -20,12 +20,12 @@ Use it via Maven
 <dependency>
     <groupId>org.alindner.tools</groupId>
     <artifactId>common</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 or Gradle
 ```groovy
-compile "org.alindner.tools:common:1.0.0"
+compile "org.alindner.tools:common:1.1.0"
 ```
 
 # Use it
