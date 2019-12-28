@@ -18,7 +18,7 @@ public class Random {
 	 *
 	 * @param <T> type of the result
 	 */
-	static class RandomStream<T> {
+	public static class RandomStream<T> {
 		private final IRandomStringGenerator<T> generator;
 
 		public RandomStream(final IRandomStringGenerator<T> generator) {

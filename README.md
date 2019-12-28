@@ -15,6 +15,8 @@ final List<String> keys = Random.build(Generator.alphanumeric())
 ``` 
 # Install it
 
+https://mvnrepository.com/artifact/org.alindner.tools/common/1.1.0
+
 Use it via Maven
 ```xml
 <dependency>
